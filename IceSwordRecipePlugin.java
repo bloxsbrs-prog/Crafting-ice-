@@ -348,6 +348,15 @@ public final class IceSwordRecipePlugin extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onMenuClick(InventoryClickEvent event) {
+        try {
+            handleMenuClick(event);
+        } catch (Throwable t) {
+            event.setCancelled(true);
+            reportError(event.getWhoClicked(), "using the recipe menu", t);
+        }
+    }
+
+    private void handleMenuClick(InventoryClickEvent event) {
         Inventory top = event.getView().getTopInventory();
         if (!(top.getHolder() instanceof RecipeMenu)) return;
 
@@ -423,9 +432,29 @@ public final class IceSwordRecipePlugin extends JavaPlugin implements Listener {
         sender.sendMessage(Component.text(text, color));
     }
 
+    /** Shows what actually went wrong, in chat and in the console, instead of Minecraft's vague "unexpected error". */
+    private void reportError(CommandSender sender, String what, Throwable t) {
+        getLogger().log(java.util.logging.Level.SEVERE, "Error while " + what, t);
+        Throwable root = t;
+        while (root.getCause() != null && root.getCause() != root) root = root.getCause();
+        String where = root.getStackTrace().length > 0 ? root.getStackTrace()[0].toString() : "unknown";
+        send(sender, "IceSwordRecipe error while " + what + ":", NamedTextColor.RED);
+        send(sender, root.getClass().getSimpleName() + ": " + root.getMessage(), NamedTextColor.RED);
+        send(sender, "at " + where, NamedTextColor.GRAY);
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         String sub = args.length == 0 ? "status" : args[0].toLowerCase(Locale.ROOT);
+        try {
+            runCommand(sender, sub);
+        } catch (Throwable t) {
+            reportError(sender, "running /icerecipe " + sub, t);
+        }
+        return true;
+    }
+
+    private void runCommand(CommandSender sender, String sub) {
         switch (sub) {
             case "enable" -> {
                 getConfig().set("recipe.enabled", true);
@@ -462,7 +491,6 @@ public final class IceSwordRecipePlugin extends JavaPlugin implements Listener {
             }
             default -> send(sender, "Usage: /icerecipe <menu|enable|disable|status|reload>", NamedTextColor.RED);
         }
-        return true;
     }
 
     @Override
