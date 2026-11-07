@@ -1,0 +1,18 @@
+name: IceSwordRecipe
+version: 1.0.0
+main: com.example.iceswordrecipe.IceSwordRecipePlugin
+api-version: "1.21"
+depend: [ElementalSwords]
+description: Addon for ElementalSwords. Adds a crafting recipe for the Frost Sword that you can switch on and off.
+commands:
+  icerecipe:
+    description: Edit the Ice Sword crafting recipe or turn it on or off
+    usage: /icerecipe <menu|enable|disable|status|reload>
+    permission: iceswordrecipe.admin
+permissions:
+  iceswordrecipe.admin:
+    description: Allows using /icerecipe
+    default: op
+  iceswordrecipe.craft:
+    description: Allows crafting the Frost Sword
+    default: true
